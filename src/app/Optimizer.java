@@ -186,6 +186,24 @@ public class Optimizer {
     // Receives a Graph, that contains a Crossover 
     // This Method will return the Graph with the Crossover resolved
     private static Graph removeCrossover(Graph graph, Node nodeFrom, Node nodeTo) {
+        int indexFrom = graph.findNode(nodeFrom);
+        int indexTo = graph.findNode(nodeTo);
+
+        if(indexFrom > indexTo) {
+            Node tempNode = nodeFrom;
+            nodeFrom = nodeTo;
+            nodeTo = tempNode;
+        }
+
+        while(nodeFrom.getID() != nodeTo.getID() && graph.findNode(nodeFrom) < graph.findNode(nodeTo)) {
+            nodeFrom = graph.getNextNode(nodeFrom);
+            nodeTo = graph.getPrevNode(nodeTo);
+            if(nodeFrom != null && nodeTo != null) {
+                graph.swapNodes(nodeFrom, nodeTo);
+            } else {
+                return graph;
+            }
+        }
         return graph;
     }
 
@@ -195,7 +213,8 @@ public class Optimizer {
         return null;
     }
 
-    //
+    // Merges a Node into the Graph at index i
+    // All Nodes that have an index >= i are moved up by one 
     private static Node[] mergeNodeIntoGraph(Node[] path, Node node, int index) {
         for (int i = path.length - 2; i >= index; i--) {
             // Node temp = path[i];
