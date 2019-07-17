@@ -5,12 +5,19 @@ package app;
  * Graph
  */
 public class Graph {
-    private Node[] nodes;
-    private DistanceMatrix distances;
+   
+    private static DistanceMatrix allDistances;
+    private static boolean isFirstGraph = true;
 
+    private DistanceMatrix distances;
+    private Node[] nodes;
     public Graph(Node[] nodes) {
         this.nodes = nodes;
-        this.distances = new DistanceMatrix(this);
+        if(isFirstGraph) {
+            allDistances = new DistanceMatrix(this);
+            isFirstGraph = false;
+        }
+        this.distances = allDistances;
     }
 
     public Graph(int length) {
@@ -81,6 +88,10 @@ public class Graph {
     
     public DistanceMatrix getDistances() {
         return this.distances;
+    }
+
+    public void setDistances(DistanceMatrix distances) {
+        this.distances = distances;
     }
 
 }

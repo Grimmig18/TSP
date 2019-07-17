@@ -7,13 +7,13 @@ public class App {
     public static void main(String[] args) throws Exception {
         System.out.println("Hello Java");
 
-        Node[] nodes = new Node[10];
+        Node[] nodes = new Node[20];
 
         IdSetter.resetIdCounter();
         for(int i = 0; i < nodes.length; i++) {
             nodes[i] = new Node();
         }
-        Graph graph = new Graph(nodes);
+        // Graph graph = new Graph(nodes);
         Graph[] solutions = new Graph[12];
         FileWriter writer = new FileWriter("C:\\Users\\d073426\\Documents\\DHBW\\Projektarbeit\\Programme\\TSP\\data.txt", true);
 
@@ -26,20 +26,20 @@ public class App {
 
         // Get all different solutions in one array of Graphs
 
-        solutions[0] = Optimizer.optimize(graph, 0, false, false);
-        solutions[1] = Optimizer.optimize(graph, 0, false, true);
-        solutions[2] = Optimizer.optimize(graph, 0, true, false);
-        solutions[3] = Optimizer.optimize(graph, 0, true, true);
+        solutions[0] = Optimizer.optimize(new Graph(nodes), Strategy.FIRST, false, false);
+        solutions[1] = Optimizer.optimize(new Graph(nodes), Strategy.FIRST, false, true);
+        solutions[2] = Optimizer.optimize(new Graph(nodes), Strategy.FIRST, true, false);
+        solutions[3] = Optimizer.optimize(new Graph(nodes), Strategy.FIRST, true, true);
 
-        solutions[4] = Optimizer.optimize(graph, 1, false, false);
-        solutions[5] = Optimizer.optimize(graph, 1, false, true);
-        solutions[6] = Optimizer.optimize(graph, 1, true, false);
-        solutions[7] = Optimizer.optimize(graph, 1, true, true);
+        solutions[4] = Optimizer.optimize(new Graph(nodes), Strategy.CLOSEST, false, false);
+        solutions[5] = Optimizer.optimize(new Graph(nodes), Strategy.CLOSEST, false, true);
+        solutions[6] = Optimizer.optimize(new Graph(nodes), Strategy.CLOSEST, true, false);
+        solutions[7] = Optimizer.optimize(new Graph(nodes), Strategy.CLOSEST, true, true);
 
-        solutions[8] = Optimizer.optimize(graph, 2, false, false);
-        solutions[9] = Optimizer.optimize(graph, 2, false, true);
-        solutions[10] = Optimizer.optimize(graph, 2, true, false);
-        solutions[11] = Optimizer.optimize(graph, 2, true, true);
+        solutions[8] = Optimizer.optimize(new Graph(nodes), Strategy.FURTHEST, false, false);
+        solutions[9] = Optimizer.optimize(new Graph(nodes), Strategy.FURTHEST, false, true);
+        solutions[10] = Optimizer.optimize(new Graph(nodes), Strategy.FURTHEST, true, false);
+        solutions[11] = Optimizer.optimize(new Graph(nodes), Strategy.FURTHEST, true, true);
 
         String dataOutput = "";
         int lowestIndex = -1;
@@ -51,6 +51,7 @@ public class App {
                 lowestDistance = solutions[i].getTotalDistance();
             }
         }
+        dataOutput += " " + lowestIndex;
         try {
             writer.write(dataOutput + "\n");
         } catch (Exception e) {
@@ -58,6 +59,6 @@ public class App {
         }
 
         writer.close();
-        UI.runUI(solutions[lowestIndex].getNodes(), lowestDistance);
+        UI.runUI(solutions[0], "Best Solution: " + lowestIndex + ", " + lowestDistance);
     }
 }

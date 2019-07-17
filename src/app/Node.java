@@ -3,7 +3,7 @@ package app;
 /**
  * Node
  */
-public class Node {
+public class Node implements Comparable<Node> {
     private final double x;
     private final double y;
     private final int ID;
@@ -35,8 +35,8 @@ public class Node {
     public int getID() {
         return this.ID;
     }
-    
-    // public Node getPickUpNode() {
-    //     return this.pickupNode;
-    // }
+
+    public int compareTo(Node other) {
+        return Math.abs(this.getID() - other.getID());
+    }
 }
