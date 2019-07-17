@@ -6,9 +6,11 @@ package app;
  */
 public class Graph {
     private Node[] nodes;
+    private DistanceMatrix distances;
 
     public Graph(Node[] nodes) {
         this.nodes = nodes;
+        this.distances = new DistanceMatrix(this);
     }
 
     public Graph(int length) {
@@ -30,7 +32,7 @@ public class Graph {
     }
 
 
-    public double getTotalDistance(DistanceMatrix distances) {
+    public double getTotalDistance() {
         if(nodes.length == 0) {
             return -1;
         }
@@ -77,4 +79,8 @@ public class Graph {
         return index != 0 ? nodes[index - 1] : null;
     }
     
+    public DistanceMatrix getDistances() {
+        return this.distances;
+    }
+
 }

@@ -6,28 +6,28 @@ package app;
 public class Optimizer {
 
     // Optimize with Strategy
-    public static Graph optimize(Node[] nodes, DistanceMatrix distances, int strategy, boolean removeCrossover,
+    public static Graph optimize(Graph graph, int strategy, boolean removeCrossover,
             boolean afterControl) {
         Graph returnGraph = null;
         switch (strategy) {
         case 0:
-            returnGraph = insertFirst(nodes, distances);
+            returnGraph = insertFirst(graph);
             break;
         case 1:
-            returnGraph = insertClosest(nodes, distances);
+            returnGraph = insertClosest(graph);
             break;
         case 2:
-            returnGraph = insertFurthest(nodes, distances);
+            returnGraph = insertFurthest(graph);
             break;
         default:
             break;
         }
 
         if (removeCrossover) {
-            returnGraph = handleCrossover(returnGraph, distances);
+            returnGraph = handleCrossover(returnGraph);
         }
         if (afterControl) {
-            returnGraph = afterControl(returnGraph, distances);
+            returnGraph = afterControl(returnGraph);
         }
 
         return returnGraph;
@@ -35,7 +35,9 @@ public class Optimizer {
 
     // Insert Nodes in order of them appearing in the nodes Array
     // Method used: merge into path
-    private static Graph insertFirst(Node[] nodes, DistanceMatrix distances) {
+    private static Graph insertFirst(Graph graph) {
+        Node[] nodes = graph.getNodes();
+        DistanceMatrix distances = graph.getDistances();
         Node[] path = new Node[nodes.length];
         path[0] = nodes[0];
         path[1] = nodes[1];
@@ -66,7 +68,9 @@ public class Optimizer {
 
     // Append Node closest to the last inserted to the path
     // Method used: append to path
-    private static Graph insertClosest(Node[] nodes, DistanceMatrix distances) {
+    private static Graph insertClosest(Graph graph) {
+        Node[] nodes = graph.getNodes();
+        DistanceMatrix distances = graph.getDistances();
         Node[] path = new Node[nodes.length];
         path[0] = nodes[0];
 
@@ -94,7 +98,9 @@ public class Optimizer {
 
     // Merge Node furthest from the last inserted into path
     // Method used: merge into path
-    private static Graph insertFurthest(Node[] nodes, DistanceMatrix distances) {
+    private static Graph insertFurthest(Graph graph) {
+        Node[] nodes = graph.getNodes();
+        DistanceMatrix distances = graph.getDistances();
         Node[] path = new Node[nodes.length];
         path[0] = nodes[0];
 
@@ -135,7 +141,7 @@ public class Optimizer {
     }
 
     // Detects and removes Crossover in a given Graph
-    private static Graph handleCrossover(Graph graph, DistanceMatrix distances) {
+    private static Graph handleCrossover(Graph graph) {
         Node[] nodes = graph.getNodes();
         for (Node n : nodes) {
             if (n == null) {
@@ -168,7 +174,6 @@ public class Optimizer {
                     double intersectY = mA * intersectX + nA;
 
                     // Now check this point of intersection is within a relevant area
-                    // TODO
                     if (((intersectX < nodeA1.getX() && intersectX > nodeA2.getX()) || (intersectX > nodeA1.getX() && intersectX < nodeA2.getX())) 
                         && ((intersectX < nodeB1.getX() && intersectX > nodeB2.getX()) || (intersectX > nodeB1.getX() && intersectX < nodeB2.getX())) 
                         && ((intersectY < nodeA1.getY() && intersectY > nodeA2.getY()) || (intersectY > nodeA1.getY() && intersectY < nodeA2.getY())) 
@@ -209,8 +214,42 @@ public class Optimizer {
 
     // Check if for any given Node a shorter total Distance can be achieved by
     // merging it into another path on the Graph
-    private static Graph afterControl(Graph graph, DistanceMatrix distances) {
-        return null;
+    private static Graph afterControl(Graph graph) {
+        // Loop through all Nodes
+        for(int i = 1; i < graph.getNodes().length - 1; i++) {
+
+            // Loop through all "routes" (route meaning the connection between two Nodes)
+            // Example: Current Node is A between the Nodes B and C (meaning the path is B -> A -> C)
+            //          This is compared to the route of the current Loop, in this example X and Y
+            //          The goal is to check if merging A between X and Y would reduce the overall distance
+            //          Meaning: 
+            //          Is dist(B -> A -> C) + dist (X -> Y) > dist(B -> C) + dist (X -> A -> Y)?
+            for(int j = 2; j < graph.getNodes().length; j++) {
+                if (i == j || i == j - 1 || i - 1 == j || i - 1 == j - 1 || i + 1 == j || i + 1 == j - 1) {
+                    continue;
+                }
+                Node node = graph.getNodes()[i];
+                // Check if new graph would be shorter
+                if (graph.getDistances().getDistanceById(graph.getNodes()[i - 1], node) + graph.getDistances().getDistanceById(node, graph.getNodes()[i + 1]) + graph.getDistances().getDistanceById(graph.getNodes()[j - 1], graph.getNodes()[j]) > 
+                    graph.getDistances().getDistanceById(graph.getNodes()[i - 1], graph.getNodes()[i + 1]) + graph.getDistances().getDistanceById(graph.getNodes()[j], node) + graph.getDistances().getDistanceById(node, graph.getNodes()[j - 1])) {
+                    
+                        // Create the new Route 
+                        if (i < j) {
+                            // Loop from node (i) to node (j)
+                            for(int k = i + 1; k < j; k++) {
+                                graph.swapNodes(node, graph.getNodes()[k]);
+                            }
+                        } else {
+                            for(int k = i; k > j - 1; k--) {
+                                graph.swapNodes(node, graph.getNodes()[k]);
+                            }
+                        }
+                }
+            }
+        }
+
+        // Get all the distance Data needed to check if changing the route would have a positive effect
+        return graph;
     }
 
     // Merges a Node into the Graph at index i

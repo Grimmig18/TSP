@@ -11,4 +11,8 @@ public class IdSetter {
         currentId++;
         return currentId - 1;
     }
+
+    public static void resetIdCounter() {
+        currentId = 0;
+    }
 }
