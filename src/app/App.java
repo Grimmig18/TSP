@@ -7,7 +7,7 @@ public class App {
     public static void main(String[] args) throws Exception {
         System.out.println("Hello Java");
 
-        Node[] nodes = new Node[20];
+        Node[] nodes = new Node[30];
 
         IdSetter.resetIdCounter();
         for(int i = 0; i < nodes.length; i++) {
@@ -59,6 +59,12 @@ public class App {
         }
 
         writer.close();
-        UI.runUI(solutions[0], "Best Solution: " + lowestIndex + ", " + lowestDistance);
+        // UI.runUI(solutions[0], "First");
+        // UI.runUI(solutions[4], "Closest");
+        // UI.runUI(solutions[8], "Furthest");
+        // UI.runUI(solutions[6], "Closest, True, False");
+        // UI.runUI(solutions[4], "Closest, False, False");
+        // UI.runUI(solutions[5], "Closest, False, True");
+        // UI.runUI(solutions[7], "Closest, True, True");
     }
 }

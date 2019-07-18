@@ -48,7 +48,7 @@ public class DebugPanel extends JPanel{
             // System.out.println(nodes[i].getX());
             linePath[i][0] = newX + 8;
             linePath[i][1] = newY + 8;
-            System.out.println("X: " + newX + ", Y: " + newY);
+            // System.out.println("X: " + newX + ", Y: " + newY);
             // g.drawOval(newX, newY, width, height);
             g.fillOval(newX, newY, width, height);
 
