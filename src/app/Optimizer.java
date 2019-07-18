@@ -1,9 +1,11 @@
 package app;
 
-import debug.DebugUI;
+// import debug.DebugUI;
 
 /**
  * Optimizer
+ * TODO: Prevent Start Location from being changed in removeCrossover or afterControl
+ * TODO: Sometimes handleCrossover doesn't remove all Crossover (-> recoursion)
  */
 public class Optimizer {
     private static boolean isFirst = false;
@@ -33,7 +35,7 @@ public class Optimizer {
         }
 
         if (isFirst) {
-            UI.runUI(graph, "After Opt");
+            UI.runUI(returnGraph, "After Opt");
         }
 
         if (removeCrossover) {
@@ -44,7 +46,7 @@ public class Optimizer {
         }
 
         if(isFirst) {
-            UI.runUI(graph, "After Everything");
+            UI.runUI(returnGraph, "After Everything");
         }
         isFirst = false;
         return returnGraph;
@@ -198,21 +200,6 @@ public class Optimizer {
                     double intersectX = (nB - nA) / (mA - mB);
                     double intersectY = (mA * intersectX) + nA;
 
-                    // Node[] debugNodes = new Node[]{
-                    // nodeA1, nodeA2, nodeB1, nodeB2
-                    // };
-                    // DebugUI.runUI(new Graph(debugNodes), "Debugging", graph.getDistances());
-
-                    // Now check this point of intersection is within a relevant area
-                    // if (((intersectX < nodeA1.getX() && intersectX > nodeA2.getX()) ||
-                    // (intersectX > nodeA1.getX() && intersectX < nodeA2.getX()))
-                    // && ((intersectX < nodeB1.getX() && intersectX > nodeB2.getX()) || (intersectX
-                    // > nodeB1.getX() && intersectX < nodeB2.getX()))
-                    // && ((intersectY < nodeA1.getY() && intersectY > nodeA2.getY()) || (intersectY
-                    // > nodeA1.getY() && intersectY < nodeA2.getY()))
-                    // && ((intersectY < nodeB1.getY() && intersectY > nodeB2.getY()) || (intersectY
-                    // > nodeB1.getY() && intersectY > nodeB2.getY()))) {
-
                     // New approach for detecting relevant crossovers
                     // Check if intersection lies within the rectangle of nodes A1 and A2 and inside
                     // the rectangle created by B1 and B2
@@ -221,7 +208,6 @@ public class Optimizer {
                     // Y A1, A2
                     // X B1, B2
                     // Y B1, B2
-                    // UI.runUI(new Graph(nodes), "Debugger");
                     if ((intersectX < (nodeA1.getX() < nodeA2.getX() ? nodeA2.getX() : nodeA1.getX())
                             && intersectX > (nodeA1.getX() < nodeA2.getX() ? nodeA1.getX() : nodeA2.getX()))
                             && (intersectY < (nodeA1.getY() < nodeA2.getY() ? nodeA2.getY() : nodeA1.getY())
@@ -230,16 +216,7 @@ public class Optimizer {
                                     && intersectX > (nodeB1.getX() < nodeB2.getX() ? nodeB1.getX() : nodeB2.getX()))
                             && (intersectY < (nodeB1.getY() < nodeB2.getY() ? nodeB2.getY() : nodeB1.getY())
                                     && intersectY > (nodeB1.getY() < nodeB2.getY() ? nodeB1.getY() : nodeB2.getY()))) {
-                        if (isFirst) {
-                            // UI.runUI(new Graph(nodes), "Debugger");
-                        }
-
                         graph = removeCrossover(graph, nodeA2, nodeB1);
-                        if (isFirst) {
-                            // UI.runUI(new Graph(nodes), "Debugger2");
-                        }
-
-                        isFirst = false;
                         crossoverCounter++;
                     }
                 }
@@ -264,16 +241,11 @@ public class Optimizer {
         }
         while (nodeFrom != null && nodeTo != null && nodeFrom.getID() != nodeTo.getID()
                 && graph.findNode(nodeFrom) < graph.findNode(nodeTo)) {
-            // if(nodeFrom != null && nodeTo != null) {
             graph.swapNodes(nodeFrom, nodeTo);
-            // } else {
-            // return graph;
-            // }
             indexTo = graph.findNode(nodeFrom);
             nodeFrom = graph.getNextNode(nodeTo);
             nodeTo = graph.getNodes()[indexTo - 1];
         }
-        // UI.runUI(graph, "Remove Crossover");
         return graph;
     }
 
@@ -292,7 +264,8 @@ public class Optimizer {
             // Meaning:
             // Is dist(B -> A -> C) + dist (X -> Y) > dist(B -> C) + dist (X -> A -> Y)?
             for (int j = 2; j < graph.getNodes().length; j++) {
-                if (i == j || i == j - 1 || i - 1 == j || i - 1 == j - 1 || i + 1 == j || i + 1 == j - 1) {
+                // if (i == j || i == j - 1 || i - 1 == j || i - 1 == j - 1 || i + 1 == j || i + 1 == j - 1) {
+                    if(i == j) {
                     continue;
                 }
                 Node node = graph.getNodes()[i];

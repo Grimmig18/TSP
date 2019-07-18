@@ -59,6 +59,14 @@ public class App {
         }
 
         writer.close();
+        UI.runUI(solutions[lowestIndex], "Best Solution");
+
+        // detect if the optimizing process changed any starting nodes
+        for(int i = 1; i < solutions.length; i++) {
+            if(solutions[i].getFirstNode().compareTo(solutions[i - 1].getFirstNode()) != 0) {
+                throw new Exception("The first Nodes of the Graphs " + i + " and " + (i - 1) + " are different");
+            }
+        }
         // UI.runUI(solutions[0], "First");
         // UI.runUI(solutions[4], "Closest");
         // UI.runUI(solutions[8], "Furthest");
