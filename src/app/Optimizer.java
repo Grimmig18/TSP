@@ -233,15 +233,12 @@ public class Optimizer {
                             && (intersectY < (nodeB1.getY() < nodeB2.getY() ? nodeB2.getY() : nodeB1.getY())
                                     && intersectY > (nodeB1.getY() < nodeB2.getY() ? nodeB1.getY() : nodeB2.getY()))) {
                         graph = removeCrossover(graph, nodeA2, nodeB1);
-                        // crossoverCounter++;
                         graphChanged = true;
                     }
                 }
             }
         }
-        // UI.runUI(graph, "After Crossover");
-        // System.out.println(crossoverCounter);
-        // crossoverCounter = 0;
+
         if (graphChanged) {
             graph = handleCrossover(graph);
         }
