@@ -9,11 +9,10 @@ public class Node implements Comparable<Node> {
     private final int ID;
     // private Node pickupNode;
 
-    public Node(double x, double y, Node pickupNode) {
+    public Node(double x, double y) {
         this.x = x;
         this.y = y;
         // this.pickupNode = pickupNode;
-
         ID = IdSetter.getNewId();
     }
 

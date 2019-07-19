@@ -3,23 +3,28 @@ package app;
 // import debug.DebugUI;
 
 /**
- * Optimizer
- * TODO: Prevent Start Location from being changed in removeCrossover or afterControl
- * TODO: Sometimes handleCrossover doesn't remove all Crossover (-> recoursion)
+ * Optimizer TODO: Prevent Start Location from being changed in removeCrossover
+ * or afterControl TODO: Sometimes handleCrossover doesn't remove all Crossover
+ * (-> recoursion)
  */
 public class Optimizer {
-    private static boolean isFirst = false;
-    private static int crossoverCounter = 0;
+    // private static boolean isFirst = false;
+    // private static int crossoverCounter = 0;
+    private static boolean graphChanged = false;
 
     // Optimize with Strategy
     public static Graph optimize(Graph graph, int strategy, boolean removeCrossover, boolean afterControl) {
-        if(removeCrossover && afterControl && strategy == Strategy.CLOSEST) {
-            isFirst = true;
-        }
+        // if (removeCrossover && afterControl && strategy == Strategy.CLOSEST) {
+        //     isFirst = true;
+        // }
         Graph returnGraph = null;
-        if (isFirst) {
-            UI.runUI(graph, "Before Opt");
-        }
+
+        // UI.runUI(graph, "Before Opt");
+        // try {
+        //     Thread.sleep(1000);
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
         switch (strategy) {
         case 0:
             returnGraph = insertFirst(graph);
@@ -34,21 +39,31 @@ public class Optimizer {
             break;
         }
 
-        if (isFirst) {
-            UI.runUI(returnGraph, "After Opt");
-        }
+        Node firstNode = returnGraph.getFirstNode();
+        // if (isFirst) {
+        // UI.runUI(returnGraph, "After Opt");
+        // }
+
+        // UI.runUI(returnGraph, "Test");
 
         if (removeCrossover) {
             returnGraph = handleCrossover(returnGraph);
         }
+        // if(firstNode.compareTo(returnGraph.getFirstNode()) != 0) {
+        // System.out.println();
+        // firstNode = returnGraph.getFirstNode();
+        // }
         if (afterControl) {
             returnGraph = afterControl(returnGraph);
         }
 
-        if(isFirst) {
-            UI.runUI(returnGraph, "After Everything");
+        // if(isFirst) {
+        // UI.runUI(returnGraph, "After Everything");
+        // }
+        // isFirst = false;
+        if (firstNode.compareTo(returnGraph.getFirstNode()) != 0) {
+            System.out.println();
         }
-        isFirst = false;
         return returnGraph;
     }
 
@@ -162,6 +177,7 @@ public class Optimizer {
 
     // Detects and removes Crossover in a given Graph
     private static Graph handleCrossover(Graph graph) {
+        graphChanged = false;
         // UI.runUI(graph, "Before Handle Crossover");
         Node[] nodes = graph.getNodes();
         for (Node n : nodes) {
@@ -171,7 +187,7 @@ public class Optimizer {
             }
         }
         for (int i = 1; i < nodes.length; i++) {
-            for (int j = 1; j < nodes.length; j++) {
+            for (int j = 2; j < nodes.length; j++) {
                 nodes = graph.getNodes();
                 // Skip if any of the Nodes would be the same Node, since that can't be a
                 // crossover
@@ -217,20 +233,25 @@ public class Optimizer {
                             && (intersectY < (nodeB1.getY() < nodeB2.getY() ? nodeB2.getY() : nodeB1.getY())
                                     && intersectY > (nodeB1.getY() < nodeB2.getY() ? nodeB1.getY() : nodeB2.getY()))) {
                         graph = removeCrossover(graph, nodeA2, nodeB1);
-                        crossoverCounter++;
+                        // crossoverCounter++;
+                        graphChanged = true;
                     }
                 }
             }
         }
         // UI.runUI(graph, "After Crossover");
-        System.out.println(crossoverCounter);
-        crossoverCounter = 0;
+        // System.out.println(crossoverCounter);
+        // crossoverCounter = 0;
+        if (graphChanged) {
+            graph = handleCrossover(graph);
+        }
         return graph;
     }
 
     // Receives a Graph, that contains a Crossover
     // This Method will return the Graph with the Crossover resolved
     private static Graph removeCrossover(Graph graph, Node nodeFrom, Node nodeTo) {
+        // Node firstNode = graph.getFirstNode();
         int indexFrom = graph.findNode(nodeFrom);
         int indexTo = graph.findNode(nodeTo);
 
@@ -241,11 +262,19 @@ public class Optimizer {
         }
         while (nodeFrom != null && nodeTo != null && nodeFrom.getID() != nodeTo.getID()
                 && graph.findNode(nodeFrom) < graph.findNode(nodeTo)) {
+
+            // if (nodeFrom.compareTo(graph.getFirstNode()) == 0 || nodeTo.compareTo(graph.getFirstNode()) == 0) {
+            //     System.out.println();
+            // }
             graph.swapNodes(nodeFrom, nodeTo);
             indexTo = graph.findNode(nodeFrom);
             nodeFrom = graph.getNextNode(nodeTo);
             nodeTo = graph.getNodes()[indexTo - 1];
+
         }
+        // if(firstNode.compareTo(graph.getFirstNode()) != 0) {
+        // System.out.println();
+        // }
         return graph;
     }
 
@@ -264,8 +293,9 @@ public class Optimizer {
             // Meaning:
             // Is dist(B -> A -> C) + dist (X -> Y) > dist(B -> C) + dist (X -> A -> Y)?
             for (int j = 2; j < graph.getNodes().length; j++) {
-                // if (i == j || i == j - 1 || i - 1 == j || i - 1 == j - 1 || i + 1 == j || i + 1 == j - 1) {
-                    if(i == j) {
+                // if (i == j || i == j - 1 || i - 1 == j || i - 1 == j - 1 || i + 1 == j || i +
+                // 1 == j - 1) {
+                if (i == j) {
                     continue;
                 }
                 Node node = graph.getNodes()[i];
@@ -284,6 +314,7 @@ public class Optimizer {
                             graph.swapNodes(node, graph.getNodes()[k]);
                         }
                     } else {
+                        // Loop backwards
                         for (int k = i; k > j - 1; k--) {
                             graph.swapNodes(node, graph.getNodes()[k]);
                         }
@@ -292,8 +323,6 @@ public class Optimizer {
             }
         }
 
-        // Get all the distance Data needed to check if changing the route would have a
-        // positive effect
         return graph;
     }
 
