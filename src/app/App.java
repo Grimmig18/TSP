@@ -14,7 +14,7 @@ public class App {
 
         Node[] nodes = new Node[30];
 
-        for (int loops = 0; loops < 1000; loops++) {
+        for (int loops = 0; loops < 100000; loops++) {
             // try {
             //     Thread.sleep(100);
             // } catch (Exception e) {
@@ -89,7 +89,7 @@ public class App {
             // Output the distances of all solutions
             for (int i = 0; i < solutions.length; i++) {
                 if (solutions[i] != null) {
-                    System.out.println("Distance solution " + i + ": " + solutions[i].getTotalDistance());
+                    //System.out.println("Distance solution " + i + ": " + solutions[i].getTotalDistance());
                     if ((i + 1) % 4 == 0) {
                         System.out.println("");
                     }

@@ -11,7 +11,7 @@ public class Optimizer {
     // private static boolean isFirst = false;
     // private static int crossoverCounter = 0;
     private static boolean graphChanged = false;
-
+    private static int recursionCounter = 0;
     // Optimize with Strategy
     public static Graph optimize(Graph graph, int strategy, boolean removeCrossover, boolean afterControl) {
         // if (removeCrossover && afterControl && strategy == Strategy.CLOSEST) {
@@ -238,8 +238,8 @@ public class Optimizer {
                 }
             }
         }
-
-        if (graphChanged) {
+        recursionCounter++;
+        if (graphChanged && recursionCounter < 100) {
             graph = handleCrossover(graph);
         }
         return graph;
