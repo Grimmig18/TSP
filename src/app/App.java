@@ -4,6 +4,7 @@ import java.io.FileWriter;
 
 public class App {
     public final static int range = 10;
+    
 
     public static void main(String[] args) throws Exception {
         System.out.println("Hello Java");
@@ -14,7 +15,7 @@ public class App {
 
         Node[] nodes = new Node[30];
 
-        for (int loops = 0; loops < 100000; loops++) {
+        for (int loops = 0; loops < 100; loops++) {
             // try {
             //     Thread.sleep(100);
             // } catch (Exception e) {
@@ -77,7 +78,10 @@ public class App {
                 e.printStackTrace();
             }
 
-            // UI.runUI(solutions[lowestIndex], "Best Solution: " + lowestIndex);
+            //UI.runUI(solutions[lowestIndex], "Best Solution: " + lowestIndex);
+            if(lowestIndex != 7) {
+                //UI.runUI(solutions[7], "Best Solution: " + 7);
+            }
 
             // detect if the optimizing process changed any starting nodes
             for (int i = 1; i < solutions.length; i++) {

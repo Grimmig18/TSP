@@ -5,7 +5,7 @@ package app;
 /**
  * Optimizer TODO: Prevent Start Location from being changed in removeCrossover
  * or afterControl TODO: Sometimes handleCrossover doesn't remove all Crossover
- * (-> recoursion)
+ * (-> recursion)
  */
 public class Optimizer {
     // private static boolean isFirst = false;
@@ -18,6 +18,7 @@ public class Optimizer {
         //     isFirst = true;
         // }
         Graph returnGraph = null;
+        recursionCounter = 0;
 
         // UI.runUI(graph, "Before Opt");
         // try {
@@ -47,7 +48,13 @@ public class Optimizer {
         // UI.runUI(returnGraph, "Test");
 
         if (removeCrossover) {
+            // UI.runUI(returnGraph, "Before remove Crossover");
             returnGraph = handleCrossover(returnGraph);
+            if(!Debugging.isCrossoverFree(returnGraph)) {
+                returnGraph = handleCrossover(returnGraph);
+            }
+            // UI.runUI(returnGraph, "After Crossover");
+            System.out.println(recursionCounter);
         }
         // if(firstNode.compareTo(returnGraph.getFirstNode()) != 0) {
         // System.out.println();
@@ -83,9 +90,9 @@ public class Optimizer {
             int shortestIndex = -1;
             double shortestDistance = -1;
 
-            for (int j = 1; j < path.length - 1; j++) {
+            for (int j = 1; j < path.length; j++) {
                 double currentDistance = ((path[j] != null) ? distances.getDistanceById(path[j], nodes[i]) : 0)
-                        + (path[j + 1] != null ? distances.getDistanceById(path[j + 1], nodes[i]) : 0);
+                        + (path[j - 1] != null ? distances.getDistanceById(path[j - 1], nodes[i]) : 0);
                 if (shortestIndex == -1 || (currentDistance < shortestDistance && currentDistance > 0)) {
                     shortestIndex = j;
                     shortestDistance = currentDistance;
@@ -94,9 +101,11 @@ public class Optimizer {
 
             // Merge into best spot in the sequence
             path = mergeNodeIntoGraph(path, nodes[i], shortestIndex);
+            // Debugging.runUIWithEmptyGraph(path);
         }
 
-        Graph returnGraph = new Graph(nodes);
+        Graph returnGraph = new Graph(path);
+        //UI.runUI(returnGraph, "Insert First");
         return returnGraph;
     }
 
@@ -115,7 +124,7 @@ public class Optimizer {
 
             // Find closest Node to current Path Node
             // skip the first one since it already is a part of the graph
-            for (int j = 1; j < nodes.length; j++) {
+            for (int j = 0; j < nodes.length; j++) {
                 double currentDistance = distances.getDistanceById(path[i - 1], nodes[j]);
                 if (!pathContainsNode(path, nodes[j])
                         && (shortestIndex == -1 || (currentDistance < shortestDistance && currentDistance > 0))) {
@@ -144,8 +153,8 @@ public class Optimizer {
             double furthestDistance = -1;
 
             // Find Node Furthest Away from path[i - 1]
-            for (int j = 0; j < nodes.length; j++) {
-                double currentDistance = distances.getDistanceById(nodes[j], path[0]);
+            for (int j = 1; j < nodes.length; j++) {
+                double currentDistance = distances.getDistanceById(nodes[j], path[i-1]);
                 if (!pathContainsNode(path, nodes[j])
                         && (furthestIndex == -1 || (furthestDistance < currentDistance && currentDistance > 0))) {
                     furthestDistance = currentDistance;
@@ -187,7 +196,7 @@ public class Optimizer {
             }
         }
         for (int i = 1; i < nodes.length; i++) {
-            for (int j = 2; j < nodes.length; j++) {
+            for (int j = 1; j < nodes.length; j++) {
                 nodes = graph.getNodes();
                 // Skip if any of the Nodes would be the same Node, since that can't be a
                 // crossover
@@ -199,7 +208,8 @@ public class Optimizer {
                 Node nodeB2 = nodes[j];
 
                 if (nodeA1.compareTo(nodeB1) != 0 && nodeA1.compareTo(nodeB2) != 0 && nodeA2.compareTo(nodeB1) != 0
-                        && nodeA2.compareTo(nodeB2) != 0) {
+                        && nodeA2.compareTo(nodeB2) != 0 && nodeB1.compareTo(graph.getFirstNode()) != 0) {
+                    // if(i != j) {
 
                     // Construct routes of these nodes (A1 -> A2, B1 -> B2)
                     // f(x) = mx + n
@@ -249,6 +259,7 @@ public class Optimizer {
     // This Method will return the Graph with the Crossover resolved
     private static Graph removeCrossover(Graph graph, Node nodeFrom, Node nodeTo) {
         // Node firstNode = graph.getFirstNode();
+        // UI.runUI(graph, "Before RemoveCrossover");
         int indexFrom = graph.findNode(nodeFrom);
         int indexTo = graph.findNode(nodeTo);
 
@@ -272,6 +283,12 @@ public class Optimizer {
         // if(firstNode.compareTo(graph.getFirstNode()) != 0) {
         // System.out.println();
         // }
+        // UI.runUI(graph, "Removed One Crossover");
+        try {
+        Thread.sleep(10);
+        } catch(Exception e) {
+            e.getStackTrace();
+        }
         return graph;
     }
 
