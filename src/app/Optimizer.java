@@ -83,6 +83,7 @@ public class Optimizer {
         path[0] = nodes[0];
         path[1] = nodes[1];
         // Loop at all Nodes, except first two
+        Debugging.runUIWithEmptyGraph(path);
         for (int i = 2; i < nodes.length; i++) {
 
             // Find best place to merge current Node into
@@ -90,10 +91,10 @@ public class Optimizer {
             int shortestIndex = -1;
             double shortestDistance = -1;
 
-            for (int j = 1; j < path.length; j++) {
+            for (int j = 1; j < path.length && path[j - 1] != null; j++) {
                 double currentDistance = ((path[j] != null) ? distances.getDistanceById(path[j], nodes[i]) : 0)
-                        + (path[j - 1] != null ? distances.getDistanceById(path[j - 1], nodes[i]) : 0);
-                if (shortestIndex == -1 || (currentDistance < shortestDistance && currentDistance > 0)) {
+                        + distances.getDistanceById(path[j - 1], nodes[i]);
+                if (shortestIndex == -1 || (currentDistance < shortestDistance)) {
                     shortestIndex = j;
                     shortestDistance = currentDistance;
                 }
@@ -101,7 +102,7 @@ public class Optimizer {
 
             // Merge into best spot in the sequence
             path = mergeNodeIntoGraph(path, nodes[i], shortestIndex);
-            // Debugging.runUIWithEmptyGraph(path);
+            Debugging.runUIWithEmptyGraph(path);
         }
 
         Graph returnGraph = new Graph(path);
@@ -344,11 +345,9 @@ public class Optimizer {
     // All Nodes that have an index >= i are moved up by one
     private static Node[] mergeNodeIntoGraph(Node[] path, Node node, int index) {
         for (int i = path.length - 2; i >= index; i--) {
-            // Node temp = path[i];
             path[i + 1] = path[i];
         }
         path[index] = node;
-
         return path;
     }
 

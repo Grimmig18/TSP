@@ -4,7 +4,6 @@ import java.io.FileWriter;
 
 public class App {
     public final static int range = 10;
-    
 
     public static void main(String[] args) throws Exception {
         System.out.println("Hello Java");
@@ -13,13 +12,13 @@ public class App {
         Graph[] solutions;
         Node[][] nodesCopies;
 
-        Node[] nodes = new Node[30];
+        Node[] nodes = new Node[5];
 
-        for (int loops = 0; loops < 100; loops++) {
+        for (int loops = 0; loops < 1; loops++) {
             // try {
-            //     Thread.sleep(100);
+            // Thread.sleep(100);
             // } catch (Exception e) {
-            //     e.printStackTrace();
+            // e.printStackTrace();
             // }
 
             IdSetter.resetIdCounter();
@@ -33,11 +32,22 @@ public class App {
             // following)
             nodesCopies = new Node[12][nodes.length];
 
+            // Reproducing one result
             for (int i = 0; i < nodesCopies.length; i++) {
                 IdSetter.resetIdCounter();
                 for (int j = 0; j < nodesCopies[0].length; j++) {
+                    double[][] firstFive = new double[][] { { 384, 251 }, { 407, 380 }, { 188, 157 }, { 659, 621 },
+                            { 435, 624 } };
+                    for (int k = 0; k < firstFive.length; k++) {
+                        firstFive[k][0] = (firstFive[k][0] * 10) / 750;
+                        firstFive[k][1] = (firstFive[k][1] * 10) / 750;
+                    }
                     if (i == 0) {
-                        nodesCopies[i][j] = new Node();
+                        if (j < 5) {
+                            nodesCopies[i][j] = new Node(firstFive[j][0], firstFive[j][1]);
+                        } else {
+                            nodesCopies[i][j] = new Node();
+                        }
                     } else {
                         nodesCopies[i][j] = new Node(nodesCopies[0][j].getX(), nodesCopies[0][j].getY());
                     }
@@ -78,9 +88,9 @@ public class App {
                 e.printStackTrace();
             }
 
-            //UI.runUI(solutions[lowestIndex], "Best Solution: " + lowestIndex);
-            if(lowestIndex != 7) {
-                //UI.runUI(solutions[7], "Best Solution: " + 7);
+            UI.runUI(solutions[lowestIndex], "Best Solution: " + lowestIndex);
+            if (lowestIndex != 7) {
+                // UI.runUI(solutions[7], "Best Solution: " + 7);
             }
 
             // detect if the optimizing process changed any starting nodes
@@ -93,13 +103,14 @@ public class App {
             // Output the distances of all solutions
             for (int i = 0; i < solutions.length; i++) {
                 if (solutions[i] != null) {
-                    //System.out.println("Distance solution " + i + ": " + solutions[i].getTotalDistance());
+                    // System.out.println("Distance solution " + i + ": " +
+                    // solutions[i].getTotalDistance());
                     if ((i + 1) % 4 == 0) {
                         System.out.println("");
                     }
                 }
             }
-            
+
         }
         writer.close();
     }
