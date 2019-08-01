@@ -4,6 +4,8 @@ import java.io.FileWriter;
 
 public class App {
     public final static int range = 10;
+    private static boolean useFixedNodes = false;
+    private final static int graphLength = 5;
 
     public static void main(String[] args) throws Exception {
         System.out.println("Hello Java");
@@ -11,18 +13,10 @@ public class App {
                 "C:\\Users\\d073426\\Documents\\DHBW\\Projektarbeit\\Programme\\TSP\\data.txt", true);
         Graph[] solutions;
         Node[][] nodesCopies;
-
-        Node[] nodes = new Node[5];
+        Node[] nodes = new Node[graphLength];
 
         for (int loops = 0; loops < 1; loops++) {
-            // try {
-            // Thread.sleep(100);
-            // } catch (Exception e) {
-            // e.printStackTrace();
-            // }
-
             IdSetter.resetIdCounter();
-
             solutions = new Graph[12];
 
             // Every Nodes Array needs to be initialized before it can be passed to the
@@ -33,6 +27,7 @@ public class App {
             nodesCopies = new Node[12][nodes.length];
 
             // Reproducing one result
+            if(useFixedNodes && graphLength == 5) {
             for (int i = 0; i < nodesCopies.length; i++) {
                 IdSetter.resetIdCounter();
                 for (int j = 0; j < nodesCopies[0].length; j++) {
@@ -53,6 +48,18 @@ public class App {
                     }
                 }
             }
+        } else {
+            for(int i = 0; i < nodesCopies.length; i++) {
+                IdSetter.resetIdCounter();
+                for(int j = 0; j < nodesCopies[0].length; j++) {
+                    if(i == 0) {
+                        nodesCopies[i][j] = new Node();
+                    }else {
+                        nodesCopies[i][j] = new Node(nodesCopies[0][j].getX(), nodesCopies[0][j].getY());
+                    }
+                }
+            }
+        }
 
             // Get all different solutions in one array of Graphs
             solutions[0] = Optimizer.optimize(new Graph(nodesCopies[0]), Strategy.FIRST, false, false);
