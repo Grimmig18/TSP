@@ -11,7 +11,7 @@ public class App {
     public static void main(String[] args) throws Exception {
         System.out.println("Hello Java");
         FileWriter writer = new FileWriter(
-                "C:\\Users\\d073426\\Documents\\DHBW\\Projektarbeit\\Programme\\TSP\\data.txt", true);
+                "data.txt", true);
         Graph[] solutions;
         Node[][] nodesCopies;
         Node[] nodes = new Node[graphLength];
