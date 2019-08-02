@@ -26,6 +26,7 @@ class MyPanel extends JPanel {
         this.nodes = nodes;
         this.totalDistance = totalDistance;
         this.linePath = new int[nodes.length][2];
+        setBackground(Color.WHITE);
     }
 
     public Dimension getPreferredSize() {
@@ -69,5 +70,6 @@ class MyPanel extends JPanel {
         // Round Total Distance
         totalDistance = Math.round(totalDistance * 1000.0) / 1000.0;
         g.drawString("Total Distance: " + totalDistance, 10, 20);
+        g.drawString("Number of Nodes: " + nodes.length, 10, 35);
     }
 }

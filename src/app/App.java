@@ -5,7 +5,8 @@ import java.io.FileWriter;
 public class App {
     public final static int range = 10;
     private static boolean useFixedNodes = false;
-    private final static int graphLength = 5;
+    private final static int graphLength = 300;
+    private final static int numberOfLoops = 1;
 
     public static void main(String[] args) throws Exception {
         System.out.println("Hello Java");
@@ -15,7 +16,7 @@ public class App {
         Node[][] nodesCopies;
         Node[] nodes = new Node[graphLength];
 
-        for (int loops = 0; loops < 1; loops++) {
+        for (int loops = 0; loops < numberOfLoops; loops++) {
             IdSetter.resetIdCounter();
             solutions = new Graph[12];
 
@@ -27,39 +28,39 @@ public class App {
             nodesCopies = new Node[12][nodes.length];
 
             // Reproducing one result
-            if(useFixedNodes && graphLength == 5) {
-            for (int i = 0; i < nodesCopies.length; i++) {
-                IdSetter.resetIdCounter();
-                for (int j = 0; j < nodesCopies[0].length; j++) {
-                    double[][] firstFive = new double[][] { { 384, 251 }, { 407, 380 }, { 188, 157 }, { 659, 621 },
-                            { 435, 624 } };
-                    for (int k = 0; k < firstFive.length; k++) {
-                        firstFive[k][0] = (firstFive[k][0] * 10) / 750;
-                        firstFive[k][1] = (firstFive[k][1] * 10) / 750;
-                    }
-                    if (i == 0) {
-                        if (j < 5) {
-                            nodesCopies[i][j] = new Node(firstFive[j][0], firstFive[j][1]);
-                        } else {
-                            nodesCopies[i][j] = new Node();
+            if (useFixedNodes && graphLength == 5) {
+                for (int i = 0; i < nodesCopies.length; i++) {
+                    IdSetter.resetIdCounter();
+                    for (int j = 0; j < nodesCopies[0].length; j++) {
+                        double[][] firstFive = new double[][] { { 384, 251 }, { 407, 380 }, { 188, 157 }, { 659, 621 },
+                                { 435, 624 } };
+                        for (int k = 0; k < firstFive.length; k++) {
+                            firstFive[k][0] = (firstFive[k][0] * 10) / 750;
+                            firstFive[k][1] = (firstFive[k][1] * 10) / 750;
                         }
-                    } else {
-                        nodesCopies[i][j] = new Node(nodesCopies[0][j].getX(), nodesCopies[0][j].getY());
+                        if (i == 0) {
+                            if (j < 5) {
+                                nodesCopies[i][j] = new Node(firstFive[j][0], firstFive[j][1]);
+                            } else {
+                                nodesCopies[i][j] = new Node();
+                            }
+                        } else {
+                            nodesCopies[i][j] = new Node(nodesCopies[0][j].getX(), nodesCopies[0][j].getY());
+                        }
+                    }
+                }
+            } else {
+                for (int i = 0; i < nodesCopies.length; i++) {
+                    IdSetter.resetIdCounter();
+                    for (int j = 0; j < nodesCopies[0].length; j++) {
+                        if (i == 0) {
+                            nodesCopies[i][j] = new Node();
+                        } else {
+                            nodesCopies[i][j] = new Node(nodesCopies[0][j].getX(), nodesCopies[0][j].getY());
+                        }
                     }
                 }
             }
-        } else {
-            for(int i = 0; i < nodesCopies.length; i++) {
-                IdSetter.resetIdCounter();
-                for(int j = 0; j < nodesCopies[0].length; j++) {
-                    if(i == 0) {
-                        nodesCopies[i][j] = new Node();
-                    }else {
-                        nodesCopies[i][j] = new Node(nodesCopies[0][j].getX(), nodesCopies[0][j].getY());
-                    }
-                }
-            }
-        }
 
             // Get all different solutions in one array of Graphs
             solutions[0] = Optimizer.optimize(new Graph(nodesCopies[0]), Strategy.FIRST, false, false);
@@ -87,7 +88,8 @@ public class App {
                     lowestDistance = solutions[i].getTotalDistance();
                 }
             }
-            dataOutput += " " + lowestIndex;
+            dataOutput += lowestIndex;
+            dataOutput += " " + graphLength;
 
             try {
                 writer.write(dataOutput + "\n");
@@ -95,10 +97,11 @@ public class App {
                 e.printStackTrace();
             }
 
-            UI.runUI(solutions[lowestIndex], "Best Solution: " + lowestIndex);
-            if (lowestIndex != 7) {
-                // UI.runUI(solutions[7], "Best Solution: " + 7);
-            }
+            //if(!Debugging.isCrossoverFree(solutions[lowestIndex])) {
+                UI.runUI(solutions[lowestIndex], "Best Solution: " + lowestIndex);
+                // writer.close();
+                // System.exit(1);
+            //}
 
             // detect if the optimizing process changed any starting nodes
             for (int i = 1; i < solutions.length; i++) {
@@ -117,7 +120,6 @@ public class App {
                     }
                 }
             }
-
         }
         writer.close();
     }

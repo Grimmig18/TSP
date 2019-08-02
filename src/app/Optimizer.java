@@ -1,5 +1,5 @@
-package app;
 
+package app;
 // import debug.DebugUI;
 
 /**
@@ -21,7 +21,7 @@ public class Optimizer {
         recursionCounter = 0;
 
         // UI.runUI(graph, "Before Opt");
-        // try {
+        // try { 
         //     Thread.sleep(1000);
         // } catch (Exception e) {
         //     e.printStackTrace();
@@ -32,9 +32,11 @@ public class Optimizer {
             break;
         case 1:
             returnGraph = insertClosest(graph);
+            // Debugging.runUIWithEmptyGraph(returnGraph.getNodes());
             break;
         case 2:
             returnGraph = insertFurthest(graph);
+            // Debugging.runUIWithEmptyGraph(returnGraph.getNodes());
             break;
         default:
             break;
@@ -47,15 +49,15 @@ public class Optimizer {
 
         // UI.runUI(returnGraph, "Test");
 
-        if (removeCrossover) {
-            // UI.runUI(returnGraph, "Before remove Crossover");
-            returnGraph = handleCrossover(returnGraph);
-            if(!Debugging.isCrossoverFree(returnGraph)) {
-                returnGraph = handleCrossover(returnGraph);
-            }
-            // UI.runUI(returnGraph, "After Crossover");
-            System.out.println(recursionCounter);
-        }
+        // if (removeCrossover) {
+        //     // UI.runUI(returnGraph, "Before remove Crossover");
+        //     returnGraph = handleCrossover(returnGraph);
+        //     if(!Debugging.isCrossoverFree(returnGraph)) {
+        //         returnGraph = handleCrossover(returnGraph);
+        //     }
+        //     // UI.runUI(returnGraph, "After Crossover");
+        //     System.out.println(recursionCounter);
+        // }
         // if(firstNode.compareTo(returnGraph.getFirstNode()) != 0) {
         // System.out.println();
         // firstNode = returnGraph.getFirstNode();
@@ -63,13 +65,22 @@ public class Optimizer {
         if (afterControl) {
             returnGraph = afterControl(returnGraph);
         }
+        if (removeCrossover) {
+            // UI.runUI(returnGraph, "Before remove Crossover");
+            returnGraph = handleCrossover(returnGraph);
+            if(!Debugging.isCrossoverFree(returnGraph)) {
+                returnGraph = handleCrossover(returnGraph);
+            }
+            // UI.runUI(returnGraph, "After Crossover");
+            //System.out.println(recursionCounter);
+        }
 
         // if(isFirst) {
         // UI.runUI(returnGraph, "After Everything");
         // }
         // isFirst = false;
         if (firstNode.compareTo(returnGraph.getFirstNode()) != 0) {
-            System.out.println();
+            System.out.println("starting Node not equal");
         }
         return returnGraph;
     }
@@ -132,7 +143,23 @@ public class Optimizer {
                     shortestDistance = currentDistance;
                 }
             }
-            path = mergeNodeIntoGraph(path, nodes[shortestIndex], i);
+
+            int shortestIndex2 = -1;
+            double shortestDistance2 = -1;
+
+            // Loop at nodes Already in Path to find the optimal place to merge into
+            for (int j = 1; j < path.length && path[j - 1] != null; j++) {
+                double currentDistance = simulateMerge(path, j, nodes[shortestIndex]).getTotalDistance();
+                // double currentDistance = ((path[j - 1] != null)
+                //         ? distances.getDistanceById(path[j - 1], nodes[furthestIndex])
+                //         : 0) + ((path[j] != null) ? distances.getDistanceById(path[j], nodes[furthestIndex]) : 0);
+
+                if (shortestIndex2 == -1 || (shortestDistance2 > currentDistance && currentDistance > 0)) {
+                    shortestDistance2 = currentDistance;
+                    shortestIndex2 = j;
+                }
+            }
+            path = mergeNodeIntoGraph(path, nodes[shortestIndex], shortestIndex2);
         }
 
         Graph returnGraph = new Graph(path);
@@ -145,8 +172,9 @@ public class Optimizer {
         Node[] nodes = graph.getNodes();
         DistanceMatrix distances = graph.getDistances();
         Node[] path = new Node[nodes.length];
+        int lastNodeIndex = 0;
         path[0] = nodes[0];
-        Debugging.runUIWithEmptyGraph(path);
+        // Debugging.runUIWithEmptyGraph(path);
         // Loop at Path to fill in all Nodes
         for (int i = 1; i < path.length; i++) {
             int furthestIndex = -1;
@@ -154,7 +182,7 @@ public class Optimizer {
 
             // Find Node Furthest Away from path[i - 1]
             for (int j = 1; j < nodes.length; j++) {
-                double currentDistance = distances.getDistanceById(nodes[j], path[i-1]);
+                double currentDistance = distances.getDistanceById(nodes[j], path[lastNodeIndex]);
                 if (!pathContainsNode(path, nodes[j])
                         && (furthestIndex == -1 || (furthestDistance < currentDistance && currentDistance > 0))) {
                     furthestDistance = currentDistance;
@@ -168,7 +196,7 @@ public class Optimizer {
 
             // Loop at nodes Already in Path to find the optimal place to merge into
             for (int j = 1; j < path.length && path[j - 1] != null; j++) {
-                double currentDistance = simulateMerge(path, j, nodes[i]).getTotalDistance();
+                double currentDistance = simulateMerge(path, j, nodes[furthestIndex]).getTotalDistance();
                 // double currentDistance = ((path[j - 1] != null)
                 //         ? distances.getDistanceById(path[j - 1], nodes[furthestIndex])
                 //         : 0) + ((path[j] != null) ? distances.getDistanceById(path[j], nodes[furthestIndex]) : 0);
@@ -179,7 +207,8 @@ public class Optimizer {
                 }
             }
             path = mergeNodeIntoGraph(path, nodes[furthestIndex], shortestIndex);
-            Debugging.runUIWithEmptyGraph(path);
+            lastNodeIndex = shortestIndex;
+            // Debugging.runUIWithEmptyGraph(path);
         }
         Graph returnGraph = new Graph(path);
         return returnGraph;
@@ -226,6 +255,7 @@ public class Optimizer {
                     // Construct crossing point of these functions to see where they intersect
                     double intersectX = (nB - nA) / (mA - mB);
                     double intersectY = (mA * intersectX) + nA;
+                    Point intersect = new Point(intersectX, intersectY);
 
                     // New approach for detecting relevant crossovers
                     // Check if intersection lies within the rectangle of nodes A1 and A2 and inside
@@ -235,14 +265,15 @@ public class Optimizer {
                     // Y A1, A2
                     // X B1, B2
                     // Y B1, B2
-                    if ((intersectX < (nodeA1.getX() < nodeA2.getX() ? nodeA2.getX() : nodeA1.getX())
-                            && intersectX > (nodeA1.getX() < nodeA2.getX() ? nodeA1.getX() : nodeA2.getX()))
-                            && (intersectY < (nodeA1.getY() < nodeA2.getY() ? nodeA2.getY() : nodeA1.getY())
-                                    && intersectY > (nodeA1.getY() < nodeA2.getY() ? nodeA1.getY() : nodeA2.getY()))
-                            && (intersectX < (nodeB1.getX() < nodeB2.getX() ? nodeB2.getX() : nodeB1.getX())
-                                    && intersectX > (nodeB1.getX() < nodeB2.getX() ? nodeB1.getX() : nodeB2.getX()))
-                            && (intersectY < (nodeB1.getY() < nodeB2.getY() ? nodeB2.getY() : nodeB1.getY())
-                                    && intersectY > (nodeB1.getY() < nodeB2.getY() ? nodeB1.getY() : nodeB2.getY()))) {
+                    // if ((intersectX < (nodeA1.getX() < nodeA2.getX() ? nodeA2.getX() : nodeA1.getX())
+                    //         && intersectX > (nodeA1.getX() < nodeA2.getX() ? nodeA1.getX() : nodeA2.getX()))
+                    //         && (intersectY < (nodeA1.getY() < nodeA2.getY() ? nodeA2.getY() : nodeA1.getY())
+                    //                 && intersectY > (nodeA1.getY() < nodeA2.getY() ? nodeA1.getY() : nodeA2.getY()))
+                    //         && (intersectX < (nodeB1.getX() < nodeB2.getX() ? nodeB2.getX() : nodeB1.getX())
+                    //                 && intersectX > (nodeB1.getX() < nodeB2.getX() ? nodeB1.getX() : nodeB2.getX()))
+                    //         && (intersectY < (nodeB1.getY() < nodeB2.getY() ? nodeB2.getY() : nodeB1.getY())
+                    //                 && intersectY > (nodeB1.getY() < nodeB2.getY() ? nodeB1.getY() : nodeB2.getY()))) {
+                        if(crossoverInRect(nodeA1, nodeA2, intersect) && crossoverInRect(nodeB1, nodeB2, intersect)) {
                         graph = removeCrossover(graph, nodeA2, nodeB1);
                         graphChanged = true;
                     }
@@ -285,11 +316,11 @@ public class Optimizer {
         // System.out.println();
         // }
         // UI.runUI(graph, "Removed One Crossover");
-        try {
-        Thread.sleep(10);
-        } catch(Exception e) {
-            e.getStackTrace();
-        }
+        // try {
+        // Thread.sleep(10);
+        // } catch(Exception e) {
+        //     e.getStackTrace();
+        // }
         return graph;
     }
 
@@ -369,6 +400,36 @@ public class Optimizer {
         }
         path = mergeNodeIntoGraph(path, node, index);
         return new Graph(path);
+    }
+
+    private static boolean crossoverInRect(Node a, Node b, Point p) {
+        int score = 0;
+        // Check X
+        if(a.getX() > b.getX()) {
+            // a is further to the right than b
+            if(p.getX() > b.getX() && p.getX() < a.getX()) {
+                score++;
+            }
+        } else {
+            // a is further to the left than b
+            if(p.getX() < b.getX() && p.getX() > a.getX()) {
+                score++;
+            }
+        }
+
+        if(a.getY() > b.getY()) {
+            // a is further down than b
+            if(p.getY() < a.getY() && p.getY() > b.getY()) {
+                score++;
+            }
+        }else{
+            // a is further up than b
+            if(p.getY() > a.getY() && p.getY() < b.getY()) {
+                score++;
+            }
+        }
+
+        return score == 2;
     }
 
 }
