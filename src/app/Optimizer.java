@@ -1,107 +1,91 @@
 
 package app;
-// import debug.DebugUI;
 
 /**
- * Optimizer TODO: Prevent Start Location from being changed in removeCrossover
- * or afterControl TODO: Sometimes handleCrossover doesn't remove all Crossover
- * (-> recursion)
+ * This Class handles all of the different Algorithms applied to a Graph. <br>
+ * Current Algorithms include:
+ * <p>
+ * <ul>
+ * <li>insertFirst {@link Optimizer#insertFirst(Graph)}
+ * <li>insertFurthest {@link Optimizer#insertFurthest(Graph)}
+ * <li>insertClosest {@link Optimizer#insertClosest(Graph)}
+ * <li>handleCrossover {@link Optimizer#handleCrossover(Graph)}
+ * <li>afterControl {@link Optimizer#afterControl(Graph)}
  */
 public class Optimizer {
     // private static boolean isFirst = false;
     // private static int crossoverCounter = 0;
     private static boolean graphChanged = false;
     private static int recursionCounter = 0;
-    // Optimize with Strategy
+
+    /**
+     * Main function of the {@code Optimizer} Class handling all other function
+     * calls
+     * 
+     * @param graph           A graph containing an array of Nodes
+     * @param strategy        Optimization Strategy (see {@link Strategy})
+     * @param removeCrossover Controls whether crossovers are removed via the
+     *                        {@link Optimizer#handleCrossover(Graph)}
+     * @param afterControl    Controls whether the
+     *                        {@link Optimizer#afterControl(Graph)} is applied
+     * @return Returns an heuristically optimized Graph as the result of the
+     *         function call
+     */
     public static Graph optimize(Graph graph, int strategy, boolean removeCrossover, boolean afterControl) {
-        // if (removeCrossover && afterControl && strategy == Strategy.CLOSEST) {
-        //     isFirst = true;
-        // }
         Graph returnGraph = null;
         recursionCounter = 0;
 
-        // UI.runUI(graph, "Before Opt");
-        // try { 
-        //     Thread.sleep(1000);
-        // } catch (Exception e) {
-        //     e.printStackTrace();
-        // }
+        // Call Strategy according to strategy parameter
         switch (strategy) {
         case 0:
             returnGraph = insertFirst(graph);
             break;
         case 1:
             returnGraph = insertClosest(graph);
-            // Debugging.runUIWithEmptyGraph(returnGraph.getNodes());
             break;
         case 2:
             returnGraph = insertFurthest(graph);
-            // Debugging.runUIWithEmptyGraph(returnGraph.getNodes());
             break;
         default:
             break;
         }
 
-        Node firstNode = returnGraph.getFirstNode();
-        // if (isFirst) {
-        // UI.runUI(returnGraph, "After Opt");
-        // }
-
-        // UI.runUI(returnGraph, "Test");
-
-        // if (removeCrossover) {
-        //     // UI.runUI(returnGraph, "Before remove Crossover");
-        //     returnGraph = handleCrossover(returnGraph);
-        //     if(!Debugging.isCrossoverFree(returnGraph)) {
-        //         returnGraph = handleCrossover(returnGraph);
-        //     }
-        //     // UI.runUI(returnGraph, "After Crossover");
-        //     System.out.println(recursionCounter);
-        // }
-        // if(firstNode.compareTo(returnGraph.getFirstNode()) != 0) {
-        // System.out.println();
-        // firstNode = returnGraph.getFirstNode();
-        // }
+        // Call additional algorithms
         if (afterControl) {
             returnGraph = afterControl(returnGraph);
         }
         if (removeCrossover) {
-            // UI.runUI(returnGraph, "Before remove Crossover");
-            returnGraph = handleCrossover(returnGraph);
-            if(!Debugging.isCrossoverFree(returnGraph)) {
-                returnGraph = handleCrossover(returnGraph);
-            }
-            // UI.runUI(returnGraph, "After Crossover");
-            //System.out.println(recursionCounter);
-        }
 
-        // if(isFirst) {
-        // UI.runUI(returnGraph, "After Everything");
-        // }
-        // isFirst = false;
-        if (firstNode.compareTo(returnGraph.getFirstNode()) != 0) {
-            System.out.println("starting Node not equal");
+            returnGraph = handleCrossover(returnGraph);
+            // if(!Debugging.isCrossoverFree(returnGraph)) {
+            // returnGraph = handleCrossover(returnGraph);
+            // }
         }
         return returnGraph;
     }
 
-    // Insert Nodes in order of them appearing in the nodes Array
-    // Method used: merge into path
+    /**
+     * Uses the insertFirst Algorithm to heuristically optimize the graph passed as
+     * its parameter
+     * 
+     * @param graph Graph to be heuristically optimized
+     * @return Returns {@code graph} with the same Nodes as the Input parameter just
+     *         in a different order
+     */
     private static Graph insertFirst(Graph graph) {
         Node[] nodes = graph.getNodes();
-        // DistanceMatrix distances = graph.getDistances();
         Node[] path = new Node[nodes.length];
         path[0] = nodes[0];
         path[1] = nodes[1];
-        // Loop at all Nodes, except first two
-        // Debugging.runUIWithEmptyGraph(path);
+
+        // Loop at all Nodes, except first two since they are already part of the graph
         for (int i = 2; i < nodes.length; i++) {
 
-            // Find best place to merge current Node into
-            // Again skip first one since this one is fixed as the origin
             int shortestIndex = -1;
             double shortestDistance = -1;
 
+            // Find best place to merge current Node into
+            // Again skip first one since this one is fixed as the origin
             for (int j = 1; j < path.length && path[j - 1] != null; j++) {
                 double currentDistance = simulateMerge(path, j, nodes[i]).getTotalDistance();
                 if (shortestIndex == -1 || (currentDistance < shortestDistance)) {
@@ -112,16 +96,20 @@ public class Optimizer {
 
             // Merge into best spot in the sequence
             path = mergeNodeIntoGraph(path, nodes[i], shortestIndex);
-            // Debugging.runUIWithEmptyGraph(path);
         }
 
         Graph returnGraph = new Graph(path);
-        //UI.runUI(returnGraph, "Insert First");
         return returnGraph;
     }
 
-    // Append Node closest to the last inserted to the path
-    // Method used: append to path
+    /**
+     * Uses the insertClosest Algorithm to heuristically optimize the graph passed
+     * as its parameter
+     * 
+     * @param graph Graph to be heuristically optimized
+     * @return Returns {@code graph} with the same Nodes as the Input parameter just
+     *         in a different order
+     */
     private static Graph insertClosest(Graph graph) {
         Node[] nodes = graph.getNodes();
         DistanceMatrix distances = graph.getDistances();
@@ -150,9 +138,6 @@ public class Optimizer {
             // Loop at nodes Already in Path to find the optimal place to merge into
             for (int j = 1; j < path.length && path[j - 1] != null; j++) {
                 double currentDistance = simulateMerge(path, j, nodes[shortestIndex]).getTotalDistance();
-                // double currentDistance = ((path[j - 1] != null)
-                //         ? distances.getDistanceById(path[j - 1], nodes[furthestIndex])
-                //         : 0) + ((path[j] != null) ? distances.getDistanceById(path[j], nodes[furthestIndex]) : 0);
 
                 if (shortestIndex2 == -1 || (shortestDistance2 > currentDistance && currentDistance > 0)) {
                     shortestDistance2 = currentDistance;
@@ -166,8 +151,14 @@ public class Optimizer {
         return returnGraph;
     }
 
-    // Merge Node furthest from the last inserted into path
-    // Method used: merge into path
+    /**
+     * Uses the insertFurthest Algorithm to heuristically optimize the graph passed
+     * as its parameter
+     * 
+     * @param graph Graph to be heuristically optimized
+     * @return Returns {@code graph} with the same Nodes as the Input parameter just
+     *         in a different order
+     */
     private static Graph insertFurthest(Graph graph) {
         Node[] nodes = graph.getNodes();
         DistanceMatrix distances = graph.getDistances();
@@ -197,10 +188,6 @@ public class Optimizer {
             // Loop at nodes Already in Path to find the optimal place to merge into
             for (int j = 1; j < path.length && path[j - 1] != null; j++) {
                 double currentDistance = simulateMerge(path, j, nodes[furthestIndex]).getTotalDistance();
-                // double currentDistance = ((path[j - 1] != null)
-                //         ? distances.getDistanceById(path[j - 1], nodes[furthestIndex])
-                //         : 0) + ((path[j] != null) ? distances.getDistanceById(path[j], nodes[furthestIndex]) : 0);
-
                 if (shortestIndex == -1 || (shortestDistance > currentDistance && currentDistance > 0)) {
                     shortestDistance = currentDistance;
                     shortestIndex = j;
@@ -214,29 +201,36 @@ public class Optimizer {
         return returnGraph;
     }
 
-    // Detects and removes Crossover in a given Graph
+    /**
+     * Method responsible for handling crossovers. Should return a crossover free
+     * graph
+     * 
+     * @param graph Graph with (or without crossovers)
+     * @return Returns a Graph (hopefully without crossover)
+     */
     private static Graph handleCrossover(Graph graph) {
         graphChanged = false;
-        // UI.runUI(graph, "Before Handle Crossover");
         Node[] nodes = graph.getNodes();
+
+        // Probably unnecessary
         for (Node n : nodes) {
             if (n == null) {
                 System.out.println("(Partly) Empty graph");
                 System.exit(1);
             }
         }
+
         for (int i = 1; i < nodes.length; i++) {
             for (int j = 1; j < nodes.length; j++) {
                 nodes = graph.getNodes();
-                // Skip if any of the Nodes would be the same Node, since that can't be a
-                // crossover
-                // if (!(i - 1 == j - 1 || i - 1 == j || i == j - 1 || i == j)) {
-                // if(!(i == j)) {
+
                 Node nodeA1 = nodes[i - 1];
                 Node nodeA2 = nodes[i];
                 Node nodeB1 = nodes[j - 1];
                 Node nodeB2 = nodes[j];
 
+                // Skipping some constellation of Nodes since they cant contain a crossover (4
+                // unique Nodes are Required)
                 if (nodeA1.compareTo(nodeB1) != 0 && nodeA1.compareTo(nodeB2) != 0 && nodeA2.compareTo(nodeB1) != 0
                         && nodeA2.compareTo(nodeB2) != 0 && nodeB1.compareTo(graph.getFirstNode()) != 0) {
                     // if(i != j) {
@@ -257,23 +251,7 @@ public class Optimizer {
                     double intersectY = (mA * intersectX) + nA;
                     Point intersect = new Point(intersectX, intersectY);
 
-                    // New approach for detecting relevant crossovers
-                    // Check if intersection lies within the rectangle of nodes A1 and A2 and inside
-                    // the rectangle created by B1 and B2
-                    // Checking Order:
-                    // X A1, A2 DONE
-                    // Y A1, A2
-                    // X B1, B2
-                    // Y B1, B2
-                    // if ((intersectX < (nodeA1.getX() < nodeA2.getX() ? nodeA2.getX() : nodeA1.getX())
-                    //         && intersectX > (nodeA1.getX() < nodeA2.getX() ? nodeA1.getX() : nodeA2.getX()))
-                    //         && (intersectY < (nodeA1.getY() < nodeA2.getY() ? nodeA2.getY() : nodeA1.getY())
-                    //                 && intersectY > (nodeA1.getY() < nodeA2.getY() ? nodeA1.getY() : nodeA2.getY()))
-                    //         && (intersectX < (nodeB1.getX() < nodeB2.getX() ? nodeB2.getX() : nodeB1.getX())
-                    //                 && intersectX > (nodeB1.getX() < nodeB2.getX() ? nodeB1.getX() : nodeB2.getX()))
-                    //         && (intersectY < (nodeB1.getY() < nodeB2.getY() ? nodeB2.getY() : nodeB1.getY())
-                    //                 && intersectY > (nodeB1.getY() < nodeB2.getY() ? nodeB1.getY() : nodeB2.getY()))) {
-                        if(crossoverInRect(nodeA1, nodeA2, intersect) && crossoverInRect(nodeB1, nodeB2, intersect)) {
+                    if (crossoverInRect(nodeA1, nodeA2, intersect) && crossoverInRect(nodeB1, nodeB2, intersect)) {
                         graph = removeCrossover(graph, nodeA2, nodeB1);
                         graphChanged = true;
                     }
@@ -281,51 +259,53 @@ public class Optimizer {
             }
         }
         recursionCounter++;
+        // Avoid endless recursion (Happened sometimes)
         if (graphChanged && recursionCounter < 100) {
             graph = handleCrossover(graph);
         }
         return graph;
     }
 
-    // Receives a Graph, that contains a Crossover
-    // This Method will return the Graph with the Crossover resolved
+    /**
+     * Responsible for removing a crossover from a Graph detected by
+     * {@link Optimizer#handleCrossover(Graph)}
+     * 
+     * @param graph    Graph that the crossover is on
+     * @param nodeFrom First relevant Node of the Crossover
+     * @param nodeTo   Last relevant Node of the crossover
+     * @return Returns the graph passed to it with the crossover resolved
+     */
     private static Graph removeCrossover(Graph graph, Node nodeFrom, Node nodeTo) {
-        // Node firstNode = graph.getFirstNode();
-        // UI.runUI(graph, "Before RemoveCrossover");
         int indexFrom = graph.findNode(nodeFrom);
         int indexTo = graph.findNode(nodeTo);
 
+        // Make sure that indexFrom is smaller than indexTo
         if (indexFrom > indexTo) {
             Node tempNode = nodeFrom;
             nodeFrom = nodeTo;
             nodeTo = tempNode;
         }
+
+        // reverse the order of all Nodes between the two relevant Nodes (nodeFrom,
+        // nodeTo)
         while (nodeFrom != null && nodeTo != null && nodeFrom.getID() != nodeTo.getID()
                 && graph.findNode(nodeFrom) < graph.findNode(nodeTo)) {
 
-            // if (nodeFrom.compareTo(graph.getFirstNode()) == 0 || nodeTo.compareTo(graph.getFirstNode()) == 0) {
-            //     System.out.println();
-            // }
             graph.swapNodes(nodeFrom, nodeTo);
             indexTo = graph.findNode(nodeFrom);
             nodeFrom = graph.getNextNode(nodeTo);
             nodeTo = graph.getNodes()[indexTo - 1];
 
         }
-        // if(firstNode.compareTo(graph.getFirstNode()) != 0) {
-        // System.out.println();
-        // }
-        // UI.runUI(graph, "Removed One Crossover");
-        // try {
-        // Thread.sleep(10);
-        // } catch(Exception e) {
-        //     e.getStackTrace();
-        // }
         return graph;
     }
 
-    // Check if for any given Node a shorter total Distance can be achieved by
-    // merging it into another path on the Graph
+    /**
+     * Applies the afterControl Algorithm to a graph
+     * 
+     * @param graph Graph the algorithm is applied to
+     * @return Returns a Graph with lower distance then before
+     */
     private static Graph afterControl(Graph graph) {
         // Loop through all Nodes
         for (int i = 1; i < graph.getNodes().length - 1; i++) {
@@ -339,8 +319,6 @@ public class Optimizer {
             // Meaning:
             // Is dist(B -> A -> C) + dist (X -> Y) > dist(B -> C) + dist (X -> A -> Y)?
             for (int j = 2; j < graph.getNodes().length; j++) {
-                // if (i == j || i == j - 1 || i - 1 == j || i - 1 == j - 1 || i + 1 == j || i +
-                // 1 == j - 1) {
                 if (i == j) {
                     continue;
                 }
@@ -372,8 +350,14 @@ public class Optimizer {
         return graph;
     }
 
-    // Merges a Node into the Graph at index i
-    // All Nodes that have an index >= i are moved up by one
+    /**
+     * Merges a given Node into the path (Node array)
+     * 
+     * @param path  Node array that {@code node} is merged into
+     * @param node  Node to be merged
+     * @param index Index {@code node} will end up at
+     * @return returns path with the merged Node
+     */
     private static Node[] mergeNodeIntoGraph(Node[] path, Node node, int index) {
         for (int i = path.length - 2; i >= index; i--) {
             path[i + 1] = path[i];
@@ -382,6 +366,14 @@ public class Optimizer {
         return path;
     }
 
+    /**
+     * Checks whether a Node Array contains a certain Node (check is done via the
+     * {@code ID} property)
+     * 
+     * @param path Nodes Array
+     * @param node Node to be checked
+     * @return Returns true if {@code path} contains {@code node}
+     */
     private static boolean pathContainsNode(Node[] path, Node node) {
         for (Node n : path) {
             if (node.getID() == (n != null ? n.getID() : -1)) {
@@ -391,45 +383,65 @@ public class Optimizer {
         return false;
     }
 
+    /**
+     * Does the same as {@code Optimizer#mergeNodeIntoGraph(Node[], Node, int)}
+     * 
+     * @param nodes Node Array
+     * @param index Index to simulate merge at (see
+     *              {@code Optimizer.mergeNodeIntoGraph(...)})
+     * @param node  Node to merge into nodes (see above)
+     * @return returns a Graph with the simulated merged Nodes Array
+     */
     private static Graph simulateMerge(Node[] nodes, int index, Node node) {
         int numberOfNodes = 0;
-        for(;numberOfNodes < nodes.length && nodes[numberOfNodes] != null; numberOfNodes++){}
+        for (; numberOfNodes < nodes.length && nodes[numberOfNodes] != null; numberOfNodes++) {
+        }
         Node[] path = new Node[numberOfNodes + 1];
-        for(int i = 0; i < numberOfNodes; i++) {
+        for (int i = 0; i < numberOfNodes; i++) {
             path[i] = nodes[i];
         }
         path = mergeNodeIntoGraph(path, node, index);
         return new Graph(path);
     }
 
+    /**
+     * Checks if a Point p is inside the rectangle created by Nodes a and b
+     * 
+     * @param a First Node of the rectangle
+     * @param b Second Node of the rectangle
+     * @param p Point to be checked for
+     * @return returns true if p is inside the rectangle otherwise returns false
+     */
     private static boolean crossoverInRect(Node a, Node b, Point p) {
         int score = 0;
         // Check X
-        if(a.getX() > b.getX()) {
+        if (a.getX() > b.getX()) {
             // a is further to the right than b
-            if(p.getX() > b.getX() && p.getX() < a.getX()) {
+            if (p.getX() > b.getX() && p.getX() < a.getX()) {
                 score++;
             }
         } else {
             // a is further to the left than b
-            if(p.getX() < b.getX() && p.getX() > a.getX()) {
+            if (p.getX() < b.getX() && p.getX() > a.getX()) {
                 score++;
             }
         }
 
-        if(a.getY() > b.getY()) {
+        if (a.getY() > b.getY()) {
             // a is further down than b
-            if(p.getY() < a.getY() && p.getY() > b.getY()) {
+            if (p.getY() < a.getY() && p.getY() > b.getY()) {
                 score++;
             }
-        }else{
+        } else {
             // a is further up than b
-            if(p.getY() > a.getY() && p.getY() < b.getY()) {
+            if (p.getY() > a.getY() && p.getY() < b.getY()) {
                 score++;
             }
         }
-
+        // Little bit weird but it works
+        // Avoids doing overly complicated checks
+        // Of course all of the above statements could be the return value
+        // But that isn't readable
         return score == 2;
     }
-
 }
