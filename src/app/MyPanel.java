@@ -53,6 +53,9 @@ class MyPanel extends JPanel {
                 g.setColor(Color.RED);
             }
             g.fillOval(newX, newY, width, height);
+            // Draw Labels 
+            // Not really readable
+            // g.drawString("K" + (nodes[i].getID() + 1), (int) (newX + (width * 1.5)), (int) (newY + (height * 1.5)));
             g.setColor(Color.BLUE);
 
         }
